@@ -26,11 +26,11 @@ const (
 	ProductAdmin  ProductID = "matz-admin"
 )
 
-// FindWorkspaceRoot resolves the Matz Ecosystem workspace directory (preferring D:\MATZ).
+// FindWorkspaceRoot resolves the local workspace root directory via environment or working directory.
 func FindWorkspaceRoot() string {
-	for _, candidate := range []string{`D:\MATZ`, `D:\Writtt`} {
-		if info, err := os.Stat(candidate); err == nil && info.IsDir() {
-			return candidate
+	if envRoot := strings.TrimSpace(os.Getenv("MATZ_WORKSPACE_ROOT")); envRoot != "" {
+		if info, err := os.Stat(envRoot); err == nil && info.IsDir() {
+			return envRoot
 		}
 	}
 	if wd, err := os.Getwd(); err == nil {
@@ -111,7 +111,7 @@ func LaunchSuiteApp(product ProductID, args ...string) error {
 		}
 	}
 
-	// Fallback 1: check known Matz Workspace binary locations in D:\MATZ / D:\Writtt
+	// Fallback 1: check sibling workspace binary locations resolved via FindWorkspaceRoot()
 	wsRoot := FindWorkspaceRoot()
 	workspaceBins := map[ProductID][]string{
 		ProductMatz:   {filepath.Join(wsRoot, "matz-hub", "matz-hub.exe"), filepath.Join(wsRoot, "matz-hub", "build", "bin", "matz-hub.exe")},
